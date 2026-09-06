@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>温暖陪伴 · 阿溪</title>
+<style>
+  /* ===== Design Tokens ===== */
+  :root{
+    --c-bg-1:#FFF8F3;
+    --c-bg-2:#FEEDE4;
+    --c-bg-3:#FBE0D3;
+    --c-coral:#F08A7E;
+    --c-coral-soft:#FFE5DC;
+    --c-peach:#FFD3C4;
+    --c-cream:#FFFFFF;
+    --c-surface:#FFFBF7;
+    --c-border:#F3E2D8;
+    --c-text:#4A3B35;
+    --c-text-sub:#9A8A82;
+    --c-text-faint:#C4B5AE;
+    --c-online:#7DB996;
+    --c-accent-soft:#FFF1EC;
+    --r-sm:10px;
+    --r-md:16px;
+    --r-lg:24px;
+    --r-xl:32px;
+    --shadow-sm:0 2px 8px rgba(240,138,126,.08);
+    --shadow-md:0 6px 20px rgba(240,138,126,.12);
+    --shadow-lg:0 12px 36px rgba(240,138,126,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans CJK SC",sans-serif;
+    color:var(--c-text);
+    background:
+      radial-gradient(1200px 600px at 12% -10%, #FFE9DD 0%, transparent 55%),
+      radial-gradient(900px 500px at 110% 10%, #FDF0E3 0%, transparent 50%),
+      linear-gradient(160deg, var(--c-bg-1) 0%, var(--c-bg-2) 55%, var(--c-bg-3) 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    overflow-x:auto;
+  }
+
+  /* ===== Phone Stage ===== */
+  .phone-stage{
+    position:relative;
+    width:980px;
+    height:720px;
+    flex-shrink:0;
+  }
+  /* SVG frame: decorative only, never blocks UI */
+  .phone-svg{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    pointer-events:none;
+    z-index:1;
+    filter:drop-shadow(0 30px 60px rgba(180,120,100,.28));
+  }
+  /* Screen: the actual UI surface, sits inside the frame */
+  .screen{
+    position:absolute;
+    top:28px;left:28px;
+    width:924px;height:664px;
+    border-radius:38px;
+    overflow:hidden;
+    background:
+      radial-gradient(600px 300px at 0% 0%, #FFF4EC 0%, transparent 60%),
+      linear-gradient(180deg,#FFF8F3 0%, #FEEFE5 100%);
+    z-index:2;
+    display:flex;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.6);
+  }
+
+  /* ===== Left: Conversation List ===== */
+  .col-left{
+    width:244px;
+    flex-shrink:0;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(6px);
+    border-right:1px solid var(--c-border);
+    display:flex;flex-direction:column;
+  }
+  .left-head{
+    padding:18px 16px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .left-title{
+    font-size:15px;font-weight:600;color:var(--c-text);
+    letter-spacing:.5px;
+  }
+  .icon-btn{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--c-accent-soft);color:var(--c-coral);
+    border:none;cursor:pointer;transition:.2s;
+  }
+  .icon-btn:hover{background:var(--c-coral-soft);transform:scale(1.06)}
+  .search-box{
+    margin:0 12px 10px;
+    display:flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid var(--c-border);
+    border-radius:999px;padding:7px 12px;
+  }
+  .search-box input{
+    border:none;outline:none;background:transparent;flex:1;
+    font-size:12px;color:var(--c-text);font-family:inherit;
+  }
+  .search-box input::placeholder{color:var(--c-text-faint)}
+  .conv-list{flex:1;overflow-y:auto;padding:4px 8px 12px}
+  .conv-list::-webkit-scrollbar{width:4px}
+  .conv-list::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:4px}
+  .conv-item{
+    display:flex;gap:10px;align-items:center;
+    padding:10px 8px;border-radius:var(--r-md);
+    cursor:pointer;transition:.18s;margin-bottom:2px;
+    position:relative;
+  }
+  .conv-item:hover{background:rgba(255,229,220,.5)}
+  .conv-item.active{background:var(--c-coral-soft)}
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:18px;font-weight:600;color:#fff;
+    position:relative;overflow:hidden;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+  }
+  .avatar.axi{background:linear-gradient(135deg,#F7B267,#F08A7E)}
+  .avatar.morning{background:linear-gradient(135deg,#A8C8A0,#7DB996)}
+  .avatar.night{background:linear-gradient(135deg,#9BB7E8,#7E9BD6)}
+  .avatar.daily{background:linear-gradient(135deg,#E8B8C8,#D694AC)}
+  .online-dot{
+    position:absolute;right:0;bottom:0;
+    width:11px;height:11px;border-radius:50%;
+    background:var(--c-online);border:2px solid #fff;
+  }
+  .conv-body{flex:1;min-width:0}
+  .conv-name{
+    font-size:13px;font-weight:600;color:var(--c-text);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .conv-time{font-size:10px;color:var(--c-text-faint);font-weight:400}
+  .conv-last{
+    font-size:11px;color:var(--c-text-sub);
+    margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .unread{
+    position:absolute;right:8px;top:8px;
+    min-width:16px;height:16px;border-radius:8px;
+    background:var(--c-coral);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 4px;font-weight:600;
+  }
+
+  /* ===== Middle: Chat Area ===== */
+  .col-mid{
+    flex:1;display:flex;flex-direction:column;min-width:0;
+    background:
+      radial-gradient(400px 200px at 100% 0%, rgba(255,229,220,.5), transparent 60%),
+      linear-gradient(180deg,#FFFDFA 0%, #FFF6EF 100%);
+  }
+  .chat-head{
+    padding:14px 20px;
+    display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid var(--c-border);
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(8px);
+  }
+  .chat-head .avatar{width:38px;height:38px;font-size:16px}
+  .chat-info{flex:1}
+  .chat-name{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .chat-status{
+    font-size:11px;color:var(--c-online);display:flex;align-items:center;gap:5px;margin-top:2px;
+  }
+  .status-pulse{
+    width:6px;height:6px;border-radius:50%;background:var(--c-online);
+    box-shadow:0 0 0 0 rgba(125,185,150,.6);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(125,185,150,.55)}
+    70%{box-shadow:0 0 0 8px rgba(125,185,150,0)}
+    100%{box-shadow:0 0 0 0 rgba(125,185,150,0)}
+  }
+  .head-actions{display:flex;gap:8px}
+  .head-actions .icon-btn{background:transparent;color:var(--c-text-sub)}
+  .head-actions .icon-btn:hover{background:var(--c-accent-soft);color:var(--c-coral)}
+
+  .chat-body{
+    flex:1;overflow-y:auto;padding:20px 24px 8px;
+    scroll-behavior:smooth;
+  }
+  .chat-body::-webkit-scrollbar{width:5px}
+  .chat-body::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:5px}
+
+  .msg{display:flex;gap:10px;margin-bottom:18px;align-items:flex-end;animation:bubbleIn .35s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes bubbleIn{
+    from{opacity:0;transform:translateY(8px) scale(.96)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+  }
+  .msg.user{flex-direction:row-reverse}
+  .msg .mini-avatar{
+    width:30px;height:30px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;color:#fff;
+  }
+  .msg.user .mini-avatar{background:linear-gradient(135deg,#9BB7E8,#7E9BD6)}
+  .bubble{
+    max-width:70%;padding:11px 15px;border-radius:18px;
+    font-size:13.5px;line-height:1.65;word-break:break-word;
+    position:relative;
+  }
+  .msg.assistant .bubble{
+    background:#fff;border:1px solid var(--c-border);
+    border-bottom-left-radius:6px;
+    box-shadow:var(--shadow-sm);
+    color:var(--c-text);
+  }
+  .msg.user .bubble{
+    background:linear-gradient(135deg,#FFC8B8,#F7A99A);
+    color:#fff;border-bottom-right-radius:6px;
+    box-shadow:0 3px 10px rgba(240,138,126,.25);
+  }
+  .bubble strong{font-weight:600}
+  .bubble em{font-style:italic;color:var(--c-coral)}
+  .bubble .code-block{
+    display:block;margin:8px 0;padding:10px 12px;
+    background:#4A3B35;color:#FFE5DC;border-radius:10px;
+    font-family:"SF Mono","Consolas","Monaco",monospace;font-size:12px;
+    overflow-x:auto;white-space:pre;
+  }
+  .bubble .code-block .k{color:#FFB5A7}
+  .bubble .code-block .s{color:#C8E6C9}
+  .bubble .code-block .c{color:#9A8A82;font-style:italic}
+  .bubble .inline-code{
+    background:#FBEDE6;color:#C76A5E;padding:1px 6px;border-radius:5px;
+    font-family:"SF Mono","Consolas",monospace;font-size:12px;
+  }
+  .bubble .caret{
+    display:inline-block;width:2px;height:14px;
+    background:var(--c-coral);margin-left:2px;vertical-align:-2px;
+    animation:blink .9s steps(1) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+
+  /* loading dots */
+  .loading-bubble{
+    display:flex;gap:5px;align-items:center;
+    padding:14px 16px;
+  }
+  .loading-bubble .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--c-coral);
+    animation:bounce 1.2s infinite ease-in-out;
+  }
+  .loading-bubble .dot:nth-child(2){animation-delay:.15s}
+  .loading-bubble .dot:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{
+    0%,80%,100%{transform:scale(.6);opacity:.5}
+    40%{transform:scale(1);opacity:1}
+  }
+
+  .msg-time{
+    font-size:10px;color:var(--c-text-faint);
+    margin:2px 40px 0;
+  }
+  .msg.user + .msg-time{text-align:right}
+
+  /* ===== Input ===== */
+  .chat-input{
+    padding:12px 20px 16px;
+    border-top:1px solid var(--c-border);
+    background:rgba(255,255,255,.55);
+    display:flex;gap:10px;align-items:flex-end;
+  }
+  .input-wrap{
+    flex:1;display:flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid var(--c-border);
+    border-radius:999px;padding:6px 6px 6px 16px;
+    transition:.2s;
+  }
+  .input-wrap:focus-within{border-color:var(--c-coral);box-shadow:0 0 0 3px rgba(240,138,126,.12)}
+  .input-wrap input{
+    flex:1;border:none;outline:none;background:transparent;
+    font-size:13.5px;color:var(--c-text);font-family:inherit;
+    padding:6px 0;
+  }
+  .input-wrap input::placeholder{color:var(--c-text-faint)}
+  .send-btn{
+    width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#F7A99A,#F08A7E);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;flex-shrink:0;
+  }
+  .send-btn:hover:not(:disabled){transform:scale(1.08);box-shadow:0 4px 12px rgba(240,138,126,.4)}
+  .send-btn:active{transform:scale(.92)}
+  .send-btn:disabled{opacity:.5;cursor:not-allowed}
+  .send-btn.sending svg{animation:sendFly .5s ease}
+  @keyframes sendFly{
+    0%{transform:translateX(0) rotate(0)}
+    50%{transform:translateX(3px) rotate(-15deg)}
+    100%{transform:translateX(0) rotate(0)}
+  }
+
+  /* ===== Right: Topic Templates ===== */
+  .col-right{
+    width:270px;flex-shrink:0;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(6px);
+    border-left:1px solid var(--c-border);
+    display:flex;flex-direction:column;
+    transition:width .3s ease, opacity .2s;
+  }
+  .col-right.collapsed{width:0;opacity:0;overflow:hidden;border-left:none}
+  .right-head{
+    padding:18px 16px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .right-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .topic-list{flex:1;overflow-y:auto;padding:0 14px 16px;display:flex;flex-direction:column;gap:10px}
+  .topic-list::-webkit-scrollbar{width:4px}
+  .topic-list::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:4px}
+  .topic-card{
+    padding:12px 14px;border-radius:var(--r-md);
+    background:#fff;border:1px solid var(--c-border);
+    cursor:pointer;transition:.2s;
+    position:relative;overflow:hidden;
+  }
+  .topic-card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,#F7B267,#F08A7E);
+    opacity:0;transition:.2s;
+  }
+  .topic-card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-md);
+    border-color:var(--c-peach);
+  }
+  .topic-card:hover::before{opacity:1}
+  .topic-emoji{font-size:18px;margin-bottom:6px}
+  .topic-title{font-size:13px;font-weight:600;margin-bottom:3px}
+  .topic-desc{font-size:11px;color:var(--c-text-sub);line-height:1.5}
+
+  .topic-toggle{
+    position:absolute;right:16px;top:72px;z-index:5;
+    width:30px;height:30px;border-radius:50%;
+    background:#fff;border:1px solid var(--c-border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--c-coral);box-shadow:var(--shadow-sm);
+    transition:.2s;
+  }
+  .topic-toggle:hover{transform:scale(1.1)}
+
+  /* scrollbar thin */
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:#E8D5C9;border-radius:4px}
+
+  /* subtle floating decor in screen */
+  .decor{
+    position:absolute;border-radius:50%;
+    filter:blur(40px);opacity:.5;pointer-events:none;z-index:0;
+  }
+  .decor.d1{width:180px;height:180px;background:#FFD3C4;top:-40px;right:-40px}
+  .decor.d2{width:140px;height:140px;background:#E8F0E3;bottom:-30px;left:20%}
+
+</style>
+</head>
+<body>
+
+<div class="phone-stage">
+  <!-- SVG: phone outer frame ONLY (no UI blocking; screen area transparent) -->
+  <svg class="phone-svg" viewBox="0 0 980 720" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="phoneBody" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#5A4A44"/>
+        <stop offset="50%" stop-color="#3E312C"/>
+        <stop offset="100%" stop-color="#2A211D"/>
+      </linearGradient>
+      <linearGradient id="phoneHi" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,.18)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </linearGradient>
+    </defs>
+    <!-- phone body -->
+    <rect x="0" y="0" width="980" height="720" rx="54" ry="54" fill="url(#phoneBody)"/>
+    <!-- top highlight -->
+    <rect x="14" y="10" width="952" height="320" rx="44" fill="url(#phoneHi)"/>
+    <!-- side buttons -->
+    <rect x="-3" y="150" width="6" height="46" rx="3" fill="#4A3B35"/>
+    <rect x="-3" y="210" width="6" height="70" rx="3" fill="#4A3B35"/>
+    <rect x="977" y="180" width="6" height="90" rx="3" fill="#4A3B35"/>
+    <!-- speaker slit -->
+    <rect x="430" y="14" width="120" height="6" rx="3" fill="#1a1412"/>
+    <!-- camera dot -->
+    <circle cx="380" cy="17" r="4" fill="#1a1412"/>
+  </svg>
+
+  <!-- Screen: all UI lives here -->
+  <div class="screen">
+    <div class="decor d1"></div>
+    <div class="decor d2"></div>
+
+    <!-- LEFT: conversation history -->
+    <aside class="col-left">
+      <div class="left-head">
+        <span class="left-title">温暖陪伴</span>
+        <button class="icon-btn" title="新建对话" aria-label="新建对话">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      <div class="search-box">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--c-text-faint)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="搜索对话" />
+      </div>
+      <div class="conv-list" id="convList"></div>
+    </aside>
+
+    <!-- MIDDLE: chat -->
+    <main class="col-mid">
+      <header class="chat-head">
+        <div class="avatar axi" id="headAvatar">溪</div>
+        <div class="chat-info">
+          <div class="chat-name" id="headName">阿溪</div>
+          <div class="chat-status"><span class="status-pulse"></span><span id="headStatus">在线倾听中</span></div>
+        </div>
+        <div class="head-actions">
+          <button class="icon-btn" title="语音" aria-label="语音"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+          <button class="icon-btn" title="更多" aria-label="更多"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+        </div>
+      </header>
+
+      <div class="chat-body" id="chatBody"></div>
+
+      <form class="chat-input" id="chatForm" onsubmit="return false;">
+        <div class="input-wrap">
+          <input id="msgInput" placeholder="和阿溪说点什么吧…" autocomplete="off" />
+        </div>
+        <button type="submit" class="send-btn" id="sendBtn" aria-label="发送">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </main>
+
+    <!-- toggle for right panel -->
+    <button class="topic-toggle" id="topicToggle" title="话题模板" aria-label="话题模板">
+      <svg id="toggleIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+
+    <!-- RIGHT: topic templates -->
+    <aside class="col-right" id="colRight">
+      <div class="right-head">
+        <span class="right-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--c-coral)"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          暖心开场白
+        </span>
+      </div>
+      <div class="topic-list" id="topicList"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+ * 温暖陪伴 · mock data & interaction
+ * 所有回复为本地 mock，不接真实后端；措辞积极健康、保持分寸
+ * ========================================================= */
+
+// ---------- mock 数据 ----------
+const CONVERSATIONS = [
+  { id:'axi', name:'阿溪', role:'温柔知性学姐', avatarClass:'axi', online:true,
+    last:'今天也要记得好好吃饭呀～', time:'刚刚', unread:1,
+    messages:[
+      { role:'assistant', text:'嗨，我是阿溪 🌿\n很高兴遇见你。不管今天发生了什么，这里都可以慢慢说。你今天过得怎么样呀？' }
+    ]
+  },
+  { id:'morning', name:'晨间碎碎念', role:'阿溪', avatarClass:'morning', online:false,
+    last:'新的一天，慢慢来就好。', time:'08:12', unread:0,
+    messages:[
+      { role:'assistant', text:'早安呀～今早的阳光是不是也偷偷照进窗了？喝杯温水，给自己一点缓冲的时间。' }
+    ]
+  },
+  { id:'night', name:'深夜电台', role:'阿溪', avatarClass:'night', online:false,
+    last:'把今天放下，好好睡一觉。', time:'昨天', unread:0,
+    messages:[
+      { role:'assistant', text:'夜深了，把没做完的事先放一放。你已经很努力了，现在该让自己休息一下。' }
+    ]
+  },
+  { id:'daily', name:'日常打气', role:'阿溪', avatarClass:'daily', online:false,
+    last:'你比自己以为的更棒。', time:'周二', unread:0,
+    messages:[
+      { role:'assistant', text:'偶尔卡壳也没关系呀，走慢一点也是在往前走。我陪你。' }
+    ]
+  },
+  { id:'study', name:'学习搭子', role:'阿溪', avatarClass:'axi', online:false,
+    last:'先把这一小节啃完，奖励自己十分钟。', time:'周一', unread:0,
+    messages:[
+      { role:'assistant', text:'学累了就抬头看看窗外，眼睛需要休息，脑子也是。我们一小段一小段来。' }
+    ]
+  }
+];
+
+const TOPICS = [
+  { emoji:'🌧️', title:'今天心情不太好', desc:'想找个人说说，不想一个人憋着',
+    text:'今天心情不太好，有点提不起劲……' },
+  { emoji:'💼', title:'想聊聊工作', desc:'最近工作有点累，想吐槽一下',
+    text:'最近工作压力有点大，想跟你聊聊。' },
+  { emoji:'☕', title:'随便唠唠', desc:'没什么特别的事，就是想聊聊天',
+    text:'没什么特别的事，就是想随便唠唠～' },
+  { emoji:'🌟', title:'想要一点鼓励', desc:'最近有点没信心，需要打气',
+    text:'最近有点没信心，可以给我一点鼓励吗？' },
+  { emoji:'😰', title:'最近有点焦虑', desc:'脑子里事情太多，静不下来',
+    text:'最近脑子里事情太多，有点焦虑，静不下来。' },
+  { emoji:'😴', title:'睡不着', desc:'翻来覆去，想有人陪我说说话',
+    text:'睡不着，翻来覆去的，想有人陪我说说话。' },
+  { emoji:'🎉', title:'有件开心事想分享', desc:'今天遇到了好事，想告诉你',
+    text:'今天遇到了一件特别开心的事，想跟你分享！' },
+  { emoji:'🤔', title:'有点迷茫', desc:'不知道接下来该怎么走',
+    text:'最近有点迷茫，不知道接下来该往哪个方向走。' }
+];
+
+// 根据话题/关键词返回 mock 回复（积极、温柔、有分寸）
+function mockReply(userText){
+  const t = (userText||'').toLowerCase();
+  if(/心情|难过|不开心|低落|难受|丧/.test(t)){
+    return '谢谢你愿意告诉我这些呀。\n心情不好的时候，**不用急着好起来**，先允许自己难过一会儿，也是一种照顾自己的方式。\n\n可以跟我说说，是发生了什么事吗？还是只是莫名的提不起劲？不管是哪一种，我都在这里听你说。 🌿';
+  }
+  if(/工作|加班|老板|同事|压力/.test(t)){
+    return '工作上的事有时候真的会让人喘不过气呢，辛苦你了。\n\n如果可以的话，试着把*让你最累的那一件事*说出来，有时候讲着讲着，心里就没那么堵了。\n\n也要记得，**你的价值不只用工作成绩来定义**，你本身就已经很好了。';
+  }
+  if(/鼓励|信心|加油|坚持|做不到/.test(t)){
+    return '嘿，我想认真地告诉你：**你已经做得很好了**。\n\n我们总是容易看到自己没做到的，却忽略已经走过的路。哪怕今天只前进了一点点，那也是在往前走呀。\n\n想做的事，可以拆成很小很小的一步，先迈出第一步就好，剩下的我陪你慢慢走。 ✨';
+  }
+  if(/焦虑|紧张|静不下|脑子乱|慌/.test(t)){
+    return '焦虑的时候，脑子里像塞了一团乱麻对不对？\n\n我们先一起做个小动作：**慢慢吸气 4 秒，屏住 4 秒，再慢慢呼气 6 秒**，重复三次。\n\n然后把心里最惦记的那件事告诉我，我们一起把它捋顺。一件一件来，不急。 🍃';
+  }
+  if(/睡不着|失眠|深夜|睡/.test(t)){
+    return '睡不着的夜晚是有点难熬呢。\n\n先把手机屏幕调暗一点，试着让肩膀放松下来——你现在是不是不自觉地绷着？\n\n要不要我陪你慢慢数呼吸？或者跟我讲讲你今天印象最深的一个小细节，聊着聊着，困意可能就悄悄来了。 🌙';
+  }
+  if(/开心|高兴|分享|好事|成功|完成/.test(t)){
+    return '哇，听到你这么说我也跟着开心起来了！🎉\n\n快跟我讲讲嘛，是什么样的好事呀？我最喜欢听你分享开心的事了。\n\n你看，生活里总有这样那样的小光亮，值得我们好好记下来。';
+  }
+  if(/迷茫|方向|不知道|未来|选择/.test(t)){
+    return '迷茫其实说明你在认真思考未来呀，这本身就很可贵。\n\n不用急着马上找到答案。可以先告诉我：*现在最让你纠结的是什么*？\n\n我们把选项一个一个摊开看，慢慢就会清楚自己更想要什么了。不管你最后选哪条路，我都支持你。';
+  }
+  if(/唠|随便|聊聊天|没什么/.test(t)){
+    return '好呀，那我们就随便聊聊～ ☕\n\n今天有没有遇到什么有意思的小事？比如路上看到了可爱的小猫，或者吃到了好吃的东西？\n\n哪怕是很琐碎的日常，我也很乐意听。';
+  }
+  // 代码块/技术相关，展示富文本能力
+  if(/代码|code|编程|程序|bug|python|js|javascript/.test(t)){
+    return '写代码遇到卡住的时候确实很磨人呢。\n\n有时候换个思路会清楚很多，比如先把问题拆小。举个小例子：\n\n```\n// 先把大问题拆成小函数\nfunction solve(n) {\n  if (n <= 1) return n;      // 边界\n  return solve(n-1) + solve(n-2); // 递归\n}\n```\n\n你看，把逻辑拆成 `边界` 和 `递归` 两步，思路就清晰多了。\n\n慢慢来，**写代码本来就是不断试错的过程**，卡住不代表你不行，只是还没找到那条路而已。需要的话把具体问题告诉我，我们一起看看。';
+  }
+  // 默认回复
+  const defs = [
+    '嗯嗯，我在听呢。慢慢说，不着急。\n\n不管是什么事，能说出来就已经很棒了。我一直都在。 🌷',
+    '谢谢你愿意跟我说这些。\n\n我没办法替你解决所有问题，但我可以陪你一起面对。你现在感觉怎么样？',
+    '我懂你的感受。\n\n有时候不用急着做决定，先照顾好自己的情绪才是最重要的。要不要先深呼吸一下？',
+    '听到你这么说，我心里也软软的。\n\n你已经很努力了呀，真的。允许自己偶尔慢下来，没关系的。 🌸'
+  ];
+  return defs[Math.floor(Math.random()*defs.length)];
+}
+
+// ---------- 状态 ----------
+const state = {
+  currentId: 'axi',
+  typing: false
+};
+
+// ---------- 渲染会话列表 ----------
+function renderConvList(){
+  const list = document.getElementById('convList');
+  list.innerHTML = CONVERSATIONS.map(c=>`
+    <div class="conv-item ${c.id===state.currentId?'active':''}" data-id="${c.id}">
+      <div class="avatar ${c.avatarClass}">${c.name[0]}</div>
+      ${c.online?'<span class="online-dot"></span>':''}
+      <div class="conv-body">
+        <div class="conv-name">${c.name}<span class="conv-time">${c.time}</span></div>
+        <div class="conv-last">${c.last}</div>
+      </div>
+      ${c.unread?`<span class="unread">${c.unread}</span>`:''}
+    </div>
+  `).join('');
+  list.querySelectorAll('.conv-item').forEach(el=>{
+    el.addEventListener('click',()=>switchConv(el.dataset.id));
+  });
+}
+
+function switchConv(id){
+  state.currentId = id;
+  const c = CONVERSATIONS.find(x=>x.id===id);
+  if(!c) return;
+  // 更新 header
+  document.getElementById('headAvatar').className = 'avatar '+c.avatarClass;
+  document.getElementById('headAvatar').textContent = c.name[0];
+  document.getElementById('headName').textContent = c.name;
+  document.getElementById('headStatus').textContent = c.online?'在线倾听中':'离线中';
+  c.unread = 0;
+  renderConvList();
+  renderMessages();
+}
+
+// ---------- 渲染消息 ----------
+function renderMessages(){
+  const c = CONVERSATIONS.find(x=>x.id===state.currentId);
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '';
+  c.messages.forEach(m=>body.appendChild(buildMsgEl(m)));
+  scrollBottom();
+}
+
+function buildMsgEl(m){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg '+(m.role==='user'?'user':'assistant');
+  const av = document.createElement('div');
+  av.className = 'mini-avatar';
+  av.style.background = m.role==='user'
+    ? 'linear-gradient(135deg,#9BB7E8,#7E9BD6)'
+    : 'linear-gradient(135deg,#F7B267,#F08A7E)';
+  av.textContent = m.role==='user'?'我':'溪';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = formatRich(m.text);
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  return wrap;
+}
+
+// 简单富文本解析：**bold** *italic* `code` 多行```块
+function formatRich(text){
+  // 代码块
+  text = text.replace(/```([\s\S]*?)```/g,(m,code)=>{
+    const highlighted = code
+      .replace(/(\/\/.*$)/gm,'<span class="c">$1</span>')
+      .replace(/\b(function|return|if|for|const|let|var|else)\b/g,'<span class="k">$1</span>')
+      .replace(/(".*?"|'.*?')/g,'<span class="s">$1</span>');
+    return `<pre class="code-block">${highlighted.trim()}</pre>`;
+  });
+  // 行内代码
+  text = text.replace(/`([^`]+)`/g,'<code class="inline-code">$1</code>');
+  // 加粗
+  text = text.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  // 斜体
+  text = text.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  // 换行
+  text = text.replace(/\n/g,'<br>');
+  return text;
+}
+
+function scrollBottom(){
+  const body = document.getElementById('chatBody');
+  body.scrollTop = body.scrollHeight;
+}
+
+// ---------- 打字机流式回复 ----------
+function typeStream(bubbleEl, fullText, onDone){
+  bubbleEl.innerHTML = '';
+  let i = 0;
+  // 按"可见片段"输出，富文本标签整块输出避免半截标签
+  const tokens = tokenizeRich(fullText);
+  let output = '';
+  const timer = setInterval(()=>{
+    if(i>=tokens.length){
+      clearInterval(timer);
+      bubbleEl.innerHTML = formatRich(fullText); // 最终态：完整富文本，无光标
+      onDone && onDone();
+      return;
+    }
+    output += tokens[i];
+    bubbleEl.innerHTML = formatRich(output) + '<span class="caret"></span>';
+    scrollBottom();
+    i++;
+  }, 28);
+}
+
+// 把含 markdown 标记的文本切成 token（标签作为整块，其余按字符）
+function tokenizeRich(text){
+  const tokens = [];
+  const re = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|```[\s\S]*?```)/g;
+  let last = 0, m;
+  while((m=re.exec(text))!==null){
+    // 前面的普通文本按字符切
+    for(let j=last;j<m.index;j++) tokens.push(text[j]);
+    tokens.push(m[0]); // 整块标记
+    last = m.index + m[0].length;
+  }
+  for(let j=last;j<text.length;j++) tokens.push(text[j]);
+  return tokens;
+}
+
+// ---------- 发送消息 ----------
+function sendMessage(text){
+  if(state.typing) return;
+  text = (text||'').trim();
+  if(!text) return;
+  const c = CONVERSATIONS.find(x=>x.id===state.currentId);
+
+  // 1. 追加用户消息
+  c.messages.push({role:'user', text});
+  c.last = text.length>14?text.slice(0,14)+'…':text;
+  c.time = '刚刚';
+  renderConvList();
+  renderMessages();
+
+  // 2. 显示 loading
+  state.typing = true;
+  setInputDisabled(true);
+  showLoading();
+
+  // 3. mock 延迟后流式回复
+  setTimeout(()=>{
+    hideLoading();
+    const reply = mockReply(text);
+    const msgEl = appendAssistantMsg();
+    const bubble = msgEl.querySelector('.bubble');
+    typeStream(bubble, reply, ()=>{
+      c.messages.push({role:'assistant', text:reply});
+      c.last = reply.replace(/[*`\n]/g,'').slice(0,14)+'…';
+      c.time = '刚刚';
+      renderConvList();
+      state.typing = false;
+      setInputDisabled(false);
+      document.getElementById('msgInput').focus();
+    });
+  }, 900 + Math.random()*600);
+}
+
+function appendAssistantMsg(){
+  const body = document.getElementById('chatBody');
+  const el = buildMsgEl({role:'assistant', text:''});
+  body.appendChild(el);
+  scrollBottom();
+  return el;
+}
+
+let loadingEl = null;
+function showLoading(){
+  const body = document.getElementById('chatBody');
+  loadingEl = document.createElement('div');
+  loadingEl.className = 'msg assistant';
+  loadingEl.id = 'loadingMsg';
+  loadingEl.innerHTML = `
+    <div class="mini-avatar" style="background:linear-gradient(135deg,#F7B267,#F08A7E)">溪</div>
+    <div class="bubble loading-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  body.appendChild(loadingEl);
+  scrollBottom();
+}
+function hideLoading(){
+  if(loadingEl){ loadingEl.remove(); loadingEl=null; }
+}
+
+function setInputDisabled(disabled){
+  const input = document.getElementById('msgInput');
+  const btn = document.getElementById('sendBtn');
+  input.disabled = disabled;
+  btn.disabled = disabled;
+  if(!disabled) input.focus();
+}
+
+// ---------- 话题模板 ----------
+function renderTopics(){
+  const list = document.getElementById('topicList');
+  list.innerHTML = TOPICS.map((t,i)=>`
+    <div class="topic-card" data-idx="${i}">
+      <div class="topic-emoji">${t.emoji}</div>
+      <div class="topic-title">${t.title}</div>
+      <div class="topic-desc">${t.desc}</div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.topic-card').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const t = TOPICS[+el.dataset.idx];
+      document.getElementById('msgInput').value = t.text;
+      sendMessage(t.text);
+      document.getElementById('msgInput').value = '';
+    });
+  });
+}
+
+// ---------- 右栏折叠 ----------
+function toggleRight(){
+  const right = document.getElementById('colRight');
+  right.classList.toggle('collapsed');
+}
+
+// ---------- 事件绑定 ----------
+document.getElementById('chatForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const input = document.getElementById('msgInput');
+  const btn = document.getElementById('sendBtn');
+  btn.classList.add('sending');
+  setTimeout(()=>btn.classList.remove('sending'),500);
+  sendMessage(input.value);
+  input.value = '';
+});
+
+document.getElementById('topicToggle').addEventListener('click', toggleRight);
+
+// ---------- 初始化 ----------
+renderConvList();
+renderTopics();
+renderMessages();
+document.getElementById('msgInput').focus();
+</script>
+</body>
+</html>
